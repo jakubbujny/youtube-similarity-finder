@@ -10,8 +10,11 @@ class Crawler
   private
   def gatherPlaylistsFromUsersCommetingVideo(videoId, maxPlaylistsCount, nextPageToken = nil)
 
-
-    commentsWithMetadata = JSON.parse(@youtubeApiService.list_comment_threads("snippet", video_id: videoId, max_results: 100, page_token: nextPageToken).to_json)
+    begin
+      commentsWithMetadata = JSON.parse(@youtubeApiService.list_comment_threads("snippet", video_id: videoId, max_results: 100, page_token: nextPageToken).to_json)
+    rescue Google::Apis::ClientError => err
+      return [], nil
+    end
     nextPageToken = commentsWithMetadata["nextPageToken"]
     channelsIdsFromMovieComments = commentsWithMetadata["items"].map {|response| response["snippet"]["topLevelComment"]["snippet"]["authorChannelId"]["value"]}
     playLists = getPlaylistsFromChannels(channelsIdsFromMovieComments)
